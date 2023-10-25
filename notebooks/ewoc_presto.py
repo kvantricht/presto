@@ -95,7 +95,7 @@ class WorldCerealDataset(Dataset):
         # Construct normalized Presto inputs
         # NOTE: using this method because it conveniently takes care
         # of all the required normalizations
-        # the `mask` is not going to be used
+        # the `mask` is not going to be used in training mode
         x, mask, dynamic_world = presto.construct_single_presto_input(
             s2=s2_data, s2_bands=list(s2_band_mapping.values()),
             s1=s1_data, s1_bands=s1bands,
@@ -134,20 +134,21 @@ class WorldCerealDataset(Dataset):
         '''
         
         if self.mask_params is None:
-            # 
+            # return in the format we can encode it with Presto
             return x.float(), mask.bool(), dynamic_world.long(), latlon, month
         else:
+            # return it the way it's done for Presto training
             mask_eo, mask_dw, x_eo, y_eo, x_dw, y_dw, strat = self.mask_params.mask_data(
-                        x.numpy(), dynamic_world.numpy()
-                    )
+                x.numpy(), dynamic_world.numpy()
+            )
             return MaskedExample(
-                        mask_eo,
-                        mask_dw,
-                        x_eo,
-                        y_eo,
-                        x_dw,
-                        y_dw,
-                        month,
-                        latlon,
-                        strat,
-                    )
+                mask_eo,
+                mask_dw,
+                x_eo,
+                y_eo,
+                x_dw,
+                y_dw,
+                month,
+                latlon,
+                strat,
+            )
